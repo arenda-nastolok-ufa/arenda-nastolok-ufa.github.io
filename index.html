@@ -65,6 +65,13 @@ details ol{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;g
 .contact{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:6px}
 .contact h3{font-family:var(--display);font-weight:500;font-size:16px;margin:0}
 .contact p{margin:0;color:var(--muted)}
+.wish{display:flex;flex-direction:column;gap:10px}
+.wish-row{display:flex;gap:8px;flex-wrap:wrap}
+.wish-row input{flex:1 1 220px;min-width:0;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.send{font:inherit;font-weight:600;border:0;border-radius:10px;padding:10px 18px;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.send:disabled{opacity:.6;cursor:default}
+.wish-msg{font-size:14px;margin:0;min-height:1.5em}
+.wish-msg.ok{color:var(--ok)}
 @media (prefers-reduced-motion:no-preference){.card{transition:border-color .15s}.card:hover{border-color:var(--accent)}}
 </style>
 </head>
@@ -98,6 +105,17 @@ details ol{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;g
   <section class="contact">
     <h3>Как взять игру</h3>
     <p>Напишите нам в объявлении на Авито: название игры и даты. Оплата аренды и залог при выдаче, залог возвращаем, когда игра вернулась целой.</p>
+  </section>
+  <section class="contact">
+    <h3>Не нашли свою игру?</h3>
+    <p>Напишите, какую игру вы хотели бы взять. Самые популярные пожелания мы докупим.</p>
+    <form class="wish" id="wish" novalidate>
+      <div class="wish-row">
+        <input type="text" id="wish-game" name="game" maxlength="200" placeholder="Например, Каркассон" aria-label="Какую игру хотите видеть" autocomplete="off">
+        <button type="submit" class="send" id="wish-send">Отправить</button>
+      </div>
+      <p class="wish-msg" id="wish-msg" role="status"></p>
+    </form>
   </section>
 </div>
 
@@ -191,6 +209,23 @@ function render(){
   </article>`).join(""):`<div class="empty">Под такой состав игр нет. Попробуйте изменить число игроков.</div>`;
 }
 render();
+
+const FORM_URL="https://docs.google.com/forms/d/e/1FAIpQLScN3z7P0cAGIwdfJTzxVd2PNHQ6FUVmhoWrpCp0miPYhL84vA/formResponse";
+const FORM_ENTRY="entry.1839475286";
+$("#wish").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const inp=$("#wish-game"),btn=$("#wish-send"),msg=$("#wish-msg");
+ const v=inp.value.trim();
+ msg.className="wish-msg";
+ if(!v){msg.textContent="Впишите название игры.";inp.focus();return}
+ btn.disabled=true;msg.textContent="Отправляем…";
+ try{
+  const body=new URLSearchParams();body.append(FORM_ENTRY,v);
+  await fetch(FORM_URL,{method:"POST",mode:"no-cors",body});
+  msg.textContent="Спасибо! Пожелание отправлено.";msg.className="wish-msg ok";inp.value="";
+ }catch(err){msg.textContent="Не получилось отправить. Проверьте интернет и попробуйте ещё раз."}
+ btn.disabled=false;
+});
 </script>
 
 </body>
