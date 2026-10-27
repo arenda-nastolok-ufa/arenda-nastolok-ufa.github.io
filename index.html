@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Настолки напрокат</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600&display=swap">
+<style>
+/* Layout: a shelf of game boxes. Filter bar on top, then cards that read like the side of a box: players / time / age pictograms, price tag, rules on demand. */
+:root{
+  --bg:#EEF1F4; --surface:#FFFFFF; --ink:#18202C; --muted:#5B6574; --line:#D7DDE5;
+  --accent:#2B55D9; --accent-ink:#FFFFFF; --tag:#F2C230; --tag-ink:#2A2100; --ok:#1F8A5B;
+  --display:"Unbounded","Golos Text",system-ui,sans-serif;
+  --body:"Golos Text",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161E; --surface:#1A212C; --ink:#E9EDF3; --muted:#9AA5B5; --line:#2C3644;
+  --accent:#7D9BFF; --accent-ink:#0D1320; --tag:#E2B52A; --tag-ink:#1E1700; --ok:#4CC28C; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161E; --surface:#1A212C; --ink:#E9EDF3; --muted:#9AA5B5; --line:#2C3644;
+  --accent:#7D9BFF; --accent-ink:#0D1320; --tag:#E2B52A; --tag-ink:#1E1700; --ok:#4CC28C; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0}
+img{max-width:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding-block:28px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:24px}
+header{display:flex;flex-direction:column;gap:10px}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,6vw,40px);line-height:1.1;margin:0;text-wrap:balance}
+.lead{color:var(--muted);margin:0;max-width:60ch}
+.terms{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;color:var(--muted)}
+.terms b{color:var(--ink);font-weight:600}
+.filters{display:flex;flex-direction:column;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.lbl{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-right:4px}
+input[type=search]{flex:1 1 220px;min-width:0;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--bg)}
+.stepper button{font:inherit;font-size:18px;width:38px;height:38px;border:0;background:transparent;color:var(--ink);cursor:pointer}
+.stepper output{min-width:64px;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
+.chip{font:inherit;font-size:14px;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:6px 12px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.count{font-size:14px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;align-items:start}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.card h2{font-family:var(--display);font-weight:500;font-size:17px;line-height:1.25;margin:0;text-wrap:balance}
+.cat{font-size:12px;color:var(--muted);margin-top:4px}
+.price{flex:none;background:var(--tag);color:var(--tag-ink);font-weight:600;border-radius:8px;padding:4px 9px;font-size:14px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.box{display:flex;gap:6px;flex-wrap:wrap}
+.pic{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:8px;padding:4px 9px;font-size:13px;font-variant-numeric:tabular-nums}
+.pic svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8}
+.age{font-weight:600}
+.desc{margin:0;color:var(--ink)}
+details{border-top:1px solid var(--line);padding-top:10px}
+summary{cursor:pointer;font-weight:600;color:var(--accent);list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::after{content:" ↓"}
+details[open] summary::after{content:" ↑"}
+details ol{margin:8px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.foot{display:flex;justify-content:space-between;gap:8px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+.status{color:var(--ok);font-weight:600}
+.status.busy{color:var(--muted)}
+.empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:32px 0}
+.contact{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:6px}
+.contact h3{font-family:var(--display);font-weight:500;font-size:16px;margin:0}
+.contact p{margin:0;color:var(--muted)}
+@media (prefers-reduced-motion:no-preference){.card{transition:border-color .15s}.card:hover{border-color:var(--accent)}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <h1>Настолки напрокат</h1>
+    <p class="lead">Возьмите игру на вечер. Укажите, сколько вас, и посмотрите, во что можно сыграть. У каждой игры есть короткие правила.</p>
+    <div class="terms">
+      <span>Цена за <b>сутки</b></span>
+      <span>Залог <b>возвращается</b> при сдаче игры</span>
+      <span>Правила объясним при выдаче</span>
+    </div>
+  </header>
+
+  <section class="filters" aria-label="Подбор игры">
+    <div class="row">
+      <span class="lbl">Сколько вас</span>
+      <div class="stepper">
+        <button type="button" id="minus" aria-label="Меньше игроков">−</button>
+        <output id="players" aria-live="polite">любое</output>
+        <button type="button" id="plus" aria-label="Больше игроков">+</button>
+      </div>
+    </div>
+    <div class="count" id="count"></div>
+  </section>
+
+  <section class="grid" id="grid" aria-live="polite"></section>
+
+  <section class="contact">
+    <h3>Как взять игру</h3>
+    <p>Напишите нам в объявлении на Авито: название игры и даты. Оплата аренды и залог при выдаче, залог возвращаем, когда игра вернулась целой.</p>
+  </section>
+</div>
+
+<script>
+const GAMES=[
+ {n:"500 злобных карт",p:"3-10",min:3,max:10,t:"30–90 мин",a:"18+",c:"Для вечеринки",price:200,dep:350,
+  d:"Взрослая игра на чёрный юмор: собираете самые нелепые фразы.",
+  r:["Ведущий берёт чёрную карту с вопросом или пропуском.","Остальные тайно кладут белую карту, которая, по их мнению, смешнее всего её дополнит.","Ведущий выбирает лучший ответ, автор получает очко.","Ведущий меняется по кругу."]},
+ {n:"Бункер: первое убежище",p:"2+",min:2,max:16,t:"около 60 мин",a:"",c:"Для вечеринки",price:200,dep:350,
+  d:"Игра на дискуссию: мест в бункере меньше, чем игроков.",
+  r:["Каждый получает карты персонажа: профессия, здоровье, хобби, багаж и т. д.","По раундам игроки открывают свои карты и убеждают, что они нужны в бункере.","После обсуждения голосуют, кого не взять.","Побеждают те, кто попал в бункер."]},
+ {n:"Мафия",p:"6-16",min:6,max:16,t:"30–60 мин",a:"12+",c:"Для вечеринки",price:150,dep:250,
+  d:"Классика для большой компании: мирные жители против мафии.",
+  r:["Ведущий тайно раздаёт роли.","Ночью мафия выбирает жертву, город спит.","Днём все обсуждают и голосуют, кого исключить.","Мирные побеждают, вычислив всю мафию, мафия — если сравнялась с мирными."]},
+ {n:"Экивоки",p:"2-16",min:2,max:16,t:"около 60 мин",a:"12+",c:"Для вечеринки",price:150,dep:250,
+  d:"Объясняй, показывай, рисуй — команды угадывают слова.",
+  r:["Игроки делятся на команды.","Карточка задаёт, как передать слово: объяснить, показать жестами или нарисовать.","За отгаданное слово команда двигает фишку по полю.","Кто первым дошёл до финиша, тот победил."]},
+ {n:"Табу",p:"4+",min:4,max:20,t:"30–60 мин",a:"12+",c:"Для вечеринки",price:150,dep:250,
+  d:"Объясните слово, не используя запрещённые слова с карточки.",
+  r:["Игроки делятся на две команды.","Объясняющий за время раунда объясняет слова своей команде.","Нельзя говорить запрещённые слова с карточки, за нарушение — штраф.","Побеждает команда с бо́льшим числом отгаданных слов."]},
+ {n:"Легенды королевского леса",p:"4-7",min:4,max:7,t:"",a:"",c:"Для вечеринки",price:100,dep:150,
+  d:"Игра скрытых ролей и интриг: Король, Гвардеец, Разбойники и Самозванец. Похожа на «Бэнг!» в лесном сеттинге.",
+  r:["Роли раздаются тайно, открывается только Король. Каждый также получает персонажа: жёлуди на карте — это его здоровье и лимит карт на руке.","Ход: возьмите 2 карты, сыграйте сколько хотите, сбросьте лишнее.","«Бойня» снимает 1 здоровье у игрока в пределах дальности вашего оружия, «Уклонение» её отменяет. «Бойню» можно сыграть только одну за ход.","Король с Гвардейцами побеждают, если уничтожены Разбойники и Самозванец. Разбойники — если пал Король. Самозванец — если остался один."]},
+ {n:"Бар лжецов",p:"2-4",min:2,max:4,t:"15–30 мин",a:"",c:"Для вечеринки",price:100,dep:150,
+  d:"Карточный блеф: выкладывай карты и ври убедительно.",
+  r:["В раунде объявляется «карта стола».","Игроки по очереди кладут карты рубашкой вверх и заявляют, что это карты стола.","Следующий может поверить или обвинить во лжи — тогда карты вскрывают.","Кто ошибся или попался на лжи, получает штраф."]},
+ {n:"Монополия",p:"2-8",min:2,max:8,t:"от 90 мин",a:"8+",c:"Семейные",price:200,dep:350,
+  d:"Покупайте улицы, стройте дома и собирайте аренду.",
+  r:["Бросайте кубики и двигайтесь по полю.","Свободную улицу можно купить, за чужую — заплатить аренду.","Собрав все улицы одного цвета, стройте дома и отели.","Побеждает тот, кто остался последним небанкротом."]},
+ {n:"Манчкин",p:"3-6",min:3,max:6,t:"60–120 мин",a:"12+",c:"Стратегии",price:200,dep:350,
+  d:"Пародия на фэнтези: качайте героя до 10-го уровня и мешайте соседям.",
+  r:["Открывайте двери: там монстры, проклятия и сокровища.","Побеждаете монстра — получаете уровень и сокровища.","Другие игроки могут помочь в бою или подставить.","Первый, кто дошёл до 10-го уровня, побеждает."]},
+ {n:"Цитадели",p:"2-7",min:2,max:7,t:"30–60 мин",a:"10+",c:"Стратегии",price:200,dep:350,
+  d:"Стройте город, тайно выбирая персонажей с особыми способностями.",
+  r:["Каждый раунд игроки по очереди тайно выбирают персонажа.","Персонажи ходят по порядку: убийца, вор, король и другие.","На ходу берёте золото или карты и строите кварталы.","Игра кончается, когда у кого-то 8 кварталов; считаются очки."]},
+ {n:"Море, соль, бумага",p:"2-4",min:2,max:4,t:"30–45 мин",a:"8+",c:"Стратегии",price:200,dep:350,
+  d:"Компактная карточная игра про сбор морских коллекций.",
+  r:["Берите карты из колоды или со сброса.","Пары карт разыгрываются с эффектом.","Набрав нужные очки, можно закончить раунд — но с риском.","Играете несколько раундов до порога очков."]},
+ {n:"Взрывные котята",p:"2-5",min:2,max:5,t:"около 15 мин",a:"10+",c:"Быстрые",price:200,dep:350,
+  d:"Русская рулетка с котиками: не вытяните взрывного котёнка.",
+  r:["В конце хода тянете карту из колоды.","Вытянули взрывного котёнка — выбываете, если нет обезвреживания.","Остальные карты помогают: подсмотреть, пропустить ход, перемешать.","Побеждает последний выживший."]},
+ {n:"Зомби-котята",p:"2-5",min:2,max:5,t:"около 15 мин",a:"12+",c:"Быстрые",price:200,dep:350,
+  d:"Самостоятельное продолжение «Взрывных котят»: выбывшие становятся зомби.",
+  r:["Основа как во «Взрывных котятах»: не вытяните взрывного котёнка.","Новые карты позволяют выбывшим возвращаться зомби и мешать живым.","Можно смешивать с «Взрывными котятами»."]},
+ {n:"Uno",p:"2-10",min:2,max:10,t:"15–30 мин",a:"7+",c:"Быстрые",price:100,dep:150,
+  d:"Сбросьте все карты первым. Не забудьте крикнуть «Уно!».",
+  r:["Кладите карту того же цвета или числа, что на столе.","Особые карты: пропуск хода, смена направления, «возьми 2» и «возьми 4».","Когда осталась одна карта — скажите «Уно».","Кто первым избавился от карт, выиграл раунд."]},
+ {n:"Свинтус",p:"2-10",min:2,max:10,t:"15–20 мин",a:"6+",c:"Быстрые",price:200,dep:350,
+  d:"Весёлый родственник Uno с хрюкающими спецкартами.",
+  r:["Кладите карту в масть или с тем же числом.","Спецкарты заставляют брать карты, менять направление и захрюкивать соседей.","Цель — первым избавиться от карт."]},
+ {n:"Dobble",p:"2-8",min:2,max:8,t:"около 15 мин",a:"6+",c:"Быстрые",price:200,dep:350,
+  d:"Игра на скорость: у любых двух карт ровно один общий символ.",
+  r:["Сравниваете свою карту с картой на столе.","Первый, кто нашёл и назвал общий символ, забирает карту.","Есть несколько мини-игр, правила в коробке."]},
+ {n:"Тако, кот, коза, сыр, пицца",p:"2-8",min:2,max:8,t:"10–15 мин",a:"8+",c:"Быстрые",price:200,dep:350,
+  d:"Считалочка на реакцию: шлёпни по стопке вовремя.",
+  r:["Игроки по очереди выкладывают карту, проговаривая «тако, кот, коза, сыр, пицца».","Если карта совпала со словом — все хлопают по стопке.","Последний хлопнувший забирает стопку.","Кто первым избавился от карт и хлопнул, побеждает."]},
+ {n:"Similo Зоопарк",p:"2+",min:2,max:12,t:"10–15 мин",a:"7+",c:"Семейные",price:150,dep:250,
+  d:"Кооперативная игра на ассоциации: найдите загаданное животное.",
+  r:["Один игрок знает, какое животное загадано.","Он даёт подсказки другими картами: «похоже» или «не похоже».","Остальные убирают со стола неподходящих животных.","Задача — оставить загаданное до конца."]},
+ {n:"Дженга",p:"1+",min:1,max:10,t:"10–20 мин",a:"6+",c:"Семейные",price:150,dep:250,
+  d:"Башня из брусков: вытащите и не уроните.",
+  r:["Соберите башню.","По очереди вытаскивайте брусок одной рукой и кладите наверх.","Кто уронил башню, проиграл."]},
+ {n:"Стульчики",p:"1+",min:1,max:8,t:"10–15 мин",a:"5+",c:"Семейные",price:100,dep:150,
+  d:"Игра на ловкость: стройте башню из стульчиков.",
+  r:["Раздайте всем поровну стульчиков.","По очереди ставьте стульчик на башню так, чтобы она не упала.","Уронили — забираете упавшие стульчики себе.","Побеждает тот, кто первым избавился от своих."]},
+ {n:"Игральные карты",p:"2-6",min:2,max:6,t:"",a:"",c:"Семейные",price:100,dep:150,
+  d:"Обычная колода: дурак, пьяница, покер и десятки других игр.",r:[]}
+];
+const I={pl:'<svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2c3 .2 5.5 2.6 5.5 5.8"/></svg>',
+ tm:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>'};
+let n=0;
+const $=s=>document.querySelector(s);
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+$("#minus").onclick=()=>{n=Math.max(0,n-1);render()};
+$("#plus").onclick=()=>{n=Math.min(16,n+1);render()};
+function render(){
+ $("#players").textContent=n?n+(n<5&&n>1?" игрока":n===1?" игрок":" игроков"):"любое";
+ const list=GAMES.filter(g=>!n||(n>=g.min&&n<=g.max));
+ $("#count").textContent="Подходит игр: "+list.length;
+ $("#grid").innerHTML=list.length?list.map(g=>`
+  <article class="card">
+   <div class="top"><div><h2>${esc(g.n)}</h2></div><span class="price">${g.price} ₽/сут</span></div>
+   <div class="box">
+    <span class="pic">${I.pl}${g.p}</span>
+    ${g.t?`<span class="pic">${I.tm}${g.t}</span>`:""}
+    ${g.a?`<span class="pic age">${g.a}</span>`:""}
+   </div>
+   <p class="desc">${esc(g.d)}</p>
+   ${g.r.length?`<details><summary>Как играть</summary><ol>${g.r.map(x=>`<li>${esc(x)}</li>`).join("")}</ol></details>`:""}
+   <div class="foot"><span class="status">Доступна</span><span>Залог ${g.dep} ₽</span></div>
+  </article>`).join(""):`<div class="empty">Под такой состав игр нет. Попробуйте изменить число игроков.</div>`;
+}
+render();
+</script>
+
+</body>
+</html>
